@@ -4,7 +4,7 @@ import { buildPrompt } from "./prompt";
 import { sendTelegramMessage } from "./telegram";
 import type { Env, GenerateRequest } from "./types";
 
-const DEFAULT_DAYS = 30;
+const DEFAULT_DAYS = 7;
 const MAX_DAYS = 90;
 
 function json(data: unknown, status = 200): Response {

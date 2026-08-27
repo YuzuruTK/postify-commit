@@ -58,7 +58,7 @@ POST /generate
 POST /telegram/send
 ```
 
-Generate a LinkedIn post with the default 30-day period:
+Generate a LinkedIn post with the default 7-day period:
 
 ```bash
 curl -X POST http://localhost:8787/generate \
