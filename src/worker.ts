@@ -29,7 +29,7 @@ function getCorsHeaders(request: Request): Headers {
 
 function withCors(response: Response, request: Request): Response {
   const headers = new Headers(response.headers);
-  for (const [key, value] of getCorsHeaders(request)) headers.set(key, value);
+  getCorsHeaders(request).forEach((value, key) => headers.set(key, value));
   return new Response(response.body, { status: response.status, headers });
 }
 
@@ -73,13 +73,13 @@ export default {
         }
 
         const body = validateRequest(await request.json());
-        const commits = await fetchCommits(body.username, body.days ?? DEFAULT_DAYS, env.GITHUB_TOKEN);
+        const commits = await fetchCommits(body.username, body.days, env.GITHUB_TOKEN);
 
         if (commits.length === 0) {
           return cors(json({
             post: null,
             commits: 0,
-            message: `No commits found for ${body.username} in the last ${body.days ?? DEFAULT_DAYS} days.`,
+            message: `No commits found for ${body.username} in the last ${body.days} days.`,
           }));
         }
 
@@ -89,7 +89,7 @@ export default {
         return cors(json({
           post,
           commits: commits.length,
-          days: body.days ?? DEFAULT_DAYS,
+          days: body.days,
           username: body.username,
         }));
       } catch (error) {
