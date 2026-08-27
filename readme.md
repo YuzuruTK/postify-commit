@@ -55,6 +55,7 @@ The Worker exposes:
 ```text
 GET  /health
 POST /generate
+POST /telegram/send
 ```
 
 Generate a LinkedIn post with the default 30-day period:
@@ -96,8 +97,104 @@ npm run deploy
 
 The Worker uses `@cf/meta/llama-3.3-70b-instruct-fp8-fast` through the Cloudflare Workers AI binding.
 
-## Original Python CLI
+## Telegram Integration
 
+Send generated posts directly to your Telegram private chat via the Bot API.
+
+### Prerequisites
+
+- A Telegram account
+- A Telegram Bot (create one with [BotFather](https://t.me/BotFather))
+
+### Create a Bot
+
+1. Open Telegram and search for [@BotFather](https://t.me/BotFather).
+2. Send `/newbot` and follow the instructions.
+3. BotFather will give you a **token** — save it as `TELEGRAM_BOT_TOKEN`.
+
+### Get Your Chat ID
+
+1. Start a chat with your new bot and send any message.
+2. Run the following command (replace `YOUR_TOKEN`):
+   ```bash
+   curl -X GET "https://api.telegram.org/botYOUR_TOKEN/getUpdates"
+   ```
+3. Look for the `"chat":{"id":<number>}` field in the response.
+4. Save that number as `TELEGRAM_CHAT_ID`.
+
+### Configure Secrets
+
+For local development, add to your `.dev.vars` file:
+
+```text
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+```
+
+For a deployed Worker, configure the secrets with Wrangler:
+
+```bash
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+npx wrangler secret put TELEGRAM_CHAT_ID
+```
+
+### Endpoints
+
+#### Send a message manually
+
+```text
+POST /telegram/send
+```
+
+```bash
+curl -X POST http://localhost:8787/telegram/send \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Olá, mundo!"}'
+```
+
+Successful response:
+
+```json
+{
+  "telegramSent": true
+}
+```
+
+#### Generate a post and send it automatically
+
+```text
+POST /generate
+```
+
+```bash
+curl -X POST http://localhost:8787/generate \
+  -H "Content-Type: application/json" \
+  -d '{"username":"YuzuruTK","sendToTelegram":true}'
+```
+
+Response:
+
+```json
+{
+  "post": "...",
+  "commits": 12,
+  "days": 30,
+  "username": "YuzuruTK",
+  "telegramSent": true
+}
+```
+
+If the Telegram delivery fails, the post is still returned with `"telegramSent": false`.
+
+### Behaviour
+
+- Messages are truncated to 4096 characters (Telegram limit).
+- Failed deliveries do **not** affect the `/generate` response.
+- Missing or invalid tokens result in `"telegramSent": false` with no exception thrown.
+
+
+
+## Original Python CLI
 The original local CLI remains available.
 
 ### Prerequisites
