@@ -31,7 +31,7 @@ The repository includes a **Cloudflare Worker API** backed by Cloudflare Workers
 npm install
 ```
 
-### Configure GitHub secret
+### Configure secrets
 
 For local development, create a `.dev.vars` file:
 
@@ -40,6 +40,7 @@ GITHUB_TOKEN=github_pat_your_token_here
 LINKEDIN_CLIENT_ID=your_linkedin_client_id
 LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 LINKEDIN_REDIRECT_URI=http://localhost:8787/linkedin/callback
+LINKEDIN_PUBLISH_TOKEN=choose_a_long_random_secret
 ```
 
 For a deployed Worker, configure secrets with Wrangler:
@@ -49,7 +50,10 @@ npx wrangler secret put GITHUB_TOKEN
 npx wrangler secret put LINKEDIN_CLIENT_ID
 npx wrangler secret put LINKEDIN_CLIENT_SECRET
 npx wrangler secret put LINKEDIN_REDIRECT_URI
+npx wrangler secret put LINKEDIN_PUBLISH_TOKEN
 ```
+
+`LINKEDIN_PUBLISH_TOKEN` protects the publication endpoint. Clients must send it as `Authorization: Bearer <token>` and also provide `confirm: true` in the request body.
 
 The Workers AI binding is configured through `wrangler.jsonc` as `env.AI`.
 
@@ -59,7 +63,7 @@ Before deploying, replace `REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID` in `wrangler
 npx wrangler kv namespace create LINKEDIN_KV
 ```
 
-The same namespace must be used by the deployed Worker. The KV stores the encrypted-at-rest Cloudflare KV value containing the LinkedIn OAuth connection and short-lived OAuth state. The application does not log tokens.
+The same namespace must be used by the deployed Worker. KV stores the LinkedIn OAuth connection and short-lived OAuth state. The application does not log tokens.
 
 ### LinkedIn Developer configuration
 
@@ -96,15 +100,16 @@ Check connection status:
 curl http://localhost:8787/linkedin/status
 ```
 
-Publish only with explicit confirmation:
+Publish only with explicit confirmation and the publication token:
 
 ```bash
 curl -X POST http://localhost:8787/linkedin/publish \
+  -H 'Authorization: Bearer YOUR_LINKEDIN_PUBLISH_TOKEN' \
   -H 'Content-Type: application/json' \
   -d '{"post":"Meu post gerado...","confirm":true}'
 ```
 
-The API rejects publication unless `confirm` is exactly `true`.
+The API rejects publication unless the authorization token is valid and `confirm` is exactly `true`.
 
 ### Run locally
 
@@ -216,7 +221,8 @@ python postify_commit.py
 - Store production credentials as Cloudflare Worker secrets.
 - Keep GitHub and LinkedIn credentials private.
 - The OAuth state is one-time and expires after 10 minutes.
-- Publication requires explicit confirmation and is never triggered automatically by `/generate`.
+- Publication requires both authentication and explicit confirmation.
+- Publication is never triggered automatically by `/generate`.
 
 ## Development
 
