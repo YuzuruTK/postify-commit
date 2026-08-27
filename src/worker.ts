@@ -33,7 +33,7 @@ function withCors(response: Response, request: Request): Response {
   return new Response(response.body, { status: response.status, headers });
 }
 
-function validateRequest(body: unknown): GenerateRequest {
+function validateRequest(body: unknown): Required<GenerateRequest> {
   if (!body || typeof body !== "object") {
     throw new Error("Request body must be a JSON object");
   }
