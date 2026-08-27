@@ -5,6 +5,7 @@ export interface Env {
   LINKEDIN_CLIENT_ID?: string;
   LINKEDIN_CLIENT_SECRET?: string;
   LINKEDIN_REDIRECT_URI?: string;
+  LINKEDIN_PUBLISH_TOKEN?: string;
 }
 
 export interface GenerateRequest {
