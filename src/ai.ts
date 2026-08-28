@@ -1,6 +1,6 @@
 import type { Env } from "./types";
 
-export const AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+export const AI_MODEL = "@cf/zai-org/glm-4.7-flash";
 
 interface AiResponse {
   response?: string;
